@@ -226,7 +226,8 @@ impl<'a> RenderContext<'a> {
                     }
 
                     ref value => {
-                        bug!("render_utag: unexpected value {:?}", value);
+                        eprintln!("Mustache render_utag: unexpected value {:?}", value);
+                        return Err(Error::InvalidStr)
                     }
                 }
             }
