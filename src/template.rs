@@ -105,7 +105,7 @@ impl<'a> RenderContext<'a> {
                 self.render_partial(wr, stack, name, indent)
             }
             Token::IncompleteSection(..) => {
-                bug!("render_token should not encounter IncompleteSections")
+                return Err(Error::new_bug("render_token should not encounter IncompleteSections"))
             }
         }
     }
@@ -220,8 +220,13 @@ impl<'a> RenderContext<'a> {
                         try!(self.render(wr, stack, &tokens));
                     }
 
+                    Data::Bool(val) => {
+                        let s = if val { "true" } else { "false" };
+                        try!(self.write_tracking_newlines(wr, s));
+                    }
+
                     ref value => {
-                        bug!("render_utag: unexpected value {:?}", value);
+                        return Err(Error::new_bug(format!("Mustache render_utag: unexpected value {:?}", value)))
                     }
                 }
             }

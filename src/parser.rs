@@ -27,6 +27,7 @@ pub enum Error {
     EarlySectionClose(String),
     MissingSetDelimeterClosingTag,
     InvalidSetDelimeterSyntax,
+    Bug(String),
 
     #[doc(hidden)]
     __Nonexhaustive,
@@ -43,9 +44,18 @@ impl StdError for Error {
             Error::EarlySectionClose(..) => "found a closing tag for an unopened section",
             Error::MissingSetDelimeterClosingTag => "missing the new closing tag in set delimeter tag",
             Error::InvalidSetDelimeterSyntax => "invalid set delimeter tag syntax",
+            Error::Bug(..) => "encountered a bug in the mustache parser",
             Error::__Nonexhaustive => unreachable!(),
         }
     }
+}
+
+impl Error {
+  pub fn new_bug<T: Into<String>>(detail: T) -> Error {
+    let detail_s = detail.into();
+    eprintln!("Mustache bug: {:?}", detail_s);
+    Error::Bug(detail_s)
+  }
 }
 
 impl fmt::Display for Error {
@@ -63,6 +73,9 @@ impl fmt::Display for Error {
             },
             Error::EarlySectionClose(ref name) => {
                 write!(f, "found a closing tag for an unopened section {:?}", name)
+            },
+            Error::Bug(ref detail)  => {
+              write!(f, "bug in parser: {:?}", detail)
             },
             _ => write!(f, "{}", self.description()),
         }
@@ -426,7 +439,7 @@ impl<'a, T: Iterator<Item = char>> Parser<'a, T> {
                                         srcs.push(src.clone());
                                         srcs.push(csection.clone());
                                     }
-                                    _ => bug!("Incomplete sections should not be nested"),
+                                    _ => return Err(Error::new_bug("Incomplete sections should not be nested")),
                                 }
                             }
 

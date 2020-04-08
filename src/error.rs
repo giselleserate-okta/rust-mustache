@@ -17,6 +17,7 @@ pub enum Error {
     Io(StdIoError),
     Parser(parser::Error),
     Encoder(encoder::Error),
+    Bug(String),
 
     #[doc(hidden)]
     __Nonexhaustive,
@@ -38,9 +39,18 @@ impl StdError for Error {
             Error::Io(ref err) => err.description(),
             Error::Parser(ref err) => err.description(),
             Error::Encoder(ref err) => err.description(),
+            Error::Bug(ref s) => s,
             Error::__Nonexhaustive => unreachable!(),
         }
     }
+}
+
+impl Error {
+  pub fn new_bug<T: Into<String>>(desc: T) -> Error {
+    let desc_s = desc.into();
+    eprintln!("Mustache bug: {:?}", desc_s);
+    Error::Bug(desc_s)
+  }
 }
 
 impl From<StdIoError> for Error {
