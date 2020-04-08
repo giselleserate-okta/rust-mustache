@@ -105,7 +105,7 @@ impl<'a> RenderContext<'a> {
                 self.render_partial(wr, stack, name, indent)
             }
             Token::IncompleteSection(..) => {
-                bug!("render_token should not encounter IncompleteSections")
+                return Err(Error::new_bug("render_token should not encounter IncompleteSections"))
             }
         }
     }
@@ -226,8 +226,7 @@ impl<'a> RenderContext<'a> {
                     }
 
                     ref value => {
-                        eprintln!("Mustache render_utag: unexpected value {:?}", value);
-                        return Err(Error::InvalidStr)
+                        return Err(Error::new_bug(format!("Mustache render_utag: unexpected value {:?}", value)))
                     }
                 }
             }
