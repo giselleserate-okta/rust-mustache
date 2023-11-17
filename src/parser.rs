@@ -10,7 +10,6 @@ pub enum Token {
     UnescapedTag(Vec<String>, String),
     Section(Vec<String>, bool, Vec<Token>, String, String, String, String, String),
     IncompleteSection(Vec<String>, bool, String, bool),
-    Partial(String, String, String),
 }
 
 /// Error type to represent parsing failure.
@@ -432,8 +431,7 @@ impl<'a, T: Iterator<Item = char>> Parser<'a, T> {
                                 match *child {
                                     Token::Text(ref s) |
                                     Token::EscapedTag(_, ref s) |
-                                    Token::UnescapedTag(_, ref s) |
-                                    Token::Partial(_, _, ref s) => srcs.push(s.clone()),
+                                    Token::UnescapedTag(_, ref s) => srcs.push(s.clone()),
                                     Token::Section(_, _, _, _, ref osection, ref src, ref csection, _) => {
                                         srcs.push(osection.clone());
                                         srcs.push(src.clone());
@@ -506,44 +504,6 @@ impl<'a, T: Iterator<Item = char>> Parser<'a, T> {
                 self.tokens.push(Token::EscapedTag(name, tag));
             }
         };
-
-        Ok(())
-    }
-
-    fn add_partial(&mut self, content: &str, tag: String) -> Result<(), Error> {
-        let indent = match self.classify_token() {
-            TokenClass::Normal => "".to_string(),
-            TokenClass::StandAlone => {
-                if self.ch_is('\r') {
-                    self.bump();
-                }
-                self.bump();
-                "".to_string()
-            }
-            TokenClass::WhiteSpace(s, pos) => {
-                if self.ch_is('\r') {
-                    self.bump();
-                }
-                self.bump();
-
-                let ws = &s[pos..];
-
-                // Trim the whitespace from the last token.
-                self.tokens.pop();
-                self.tokens.push(Token::Text(s[0..pos].to_string()));
-
-                ws.to_string()
-            }
-        };
-
-        // We can't inline the tokens directly as we may have a recursive
-        // partial. So instead, we'll cache the partials we used and look them
-        // up later.
-        let name = &content[1..content.len()];
-        let name = try!(deny_blank(name));
-
-        self.tokens.push(Token::Partial(name.into(), indent, tag));
-        self.partials.push(name.into());
 
         Ok(())
     }
