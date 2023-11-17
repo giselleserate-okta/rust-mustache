@@ -471,9 +471,6 @@ impl<'a, T: Iterator<Item = char>> Parser<'a, T> {
                     }
                 }
             }
-            '>' => {
-                try!(self.add_partial(&content, tag));
-            }
             '=' => {
                 self.eat_whitespace();
 
