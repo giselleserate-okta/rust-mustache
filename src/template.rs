@@ -1,6 +1,5 @@
 use std::io::Write;
 use std::collections::HashMap;
-use std::mem;
 use std::result;
 use std::str;
 use serde::Serialize;
@@ -100,9 +99,6 @@ impl<'a> RenderContext<'a> {
             }
             Token::Section(ref path, false, ref children, ref otag, _, ref src, _, ref ctag) => {
                 self.render_section(wr, stack, path, children, src, otag, ctag)
-            }
-            Token::Partial(ref name, ref indent, _) => {
-                self.render_partial(wr, stack, name, indent)
             }
             Token::IncompleteSection(..) => {
                 return Err(Error::new_bug("render_token should not encounter IncompleteSections"))
@@ -297,25 +293,6 @@ impl<'a> RenderContext<'a> {
                         try!(self.render(wr, stack, &tokens));
                     }
                 }
-            }
-        };
-
-        Ok(())
-    }
-
-    fn render_partial<W: Write>(&mut self,
-                                wr: &mut W,
-                                stack: &mut Vec<&Data>,
-                                name: &str,
-                                indent: &str) -> Result<()> {
-        match self.template.partials.get(name) {
-            None => {}
-            Some(ref tokens) => {
-                let mut indent = self.indent.clone() + indent;
-
-                mem::swap(&mut self.indent, &mut indent);
-                try!(self.render(wr, stack, &tokens));
-                mem::swap(&mut self.indent, &mut indent);
             }
         };
 

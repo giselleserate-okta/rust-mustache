@@ -243,21 +243,22 @@ mod tests {
     }
 
     #[test]
-    fn test_compile_partials() {
+    fn test_never_compile_partials() {
+        // Partials are a part of the mustache spec which we have decided to explicitly not support.
         check_tokens(compile_str("{{> test}}"),
-                     &[Token::Partial("test".to_string(), "".to_string(), "{{> test}}".to_string())]);
+                     &[Token::EscapedTag(vec!["> test".to_string()], "{{> test}}".to_string())]);
 
         check_tokens(compile_str("before {{>test}} after"),
                      &[Token::Text("before ".to_string()),
-                       Token::Partial("test".to_string(), "".to_string(), "{{>test}}".to_string()),
+                       Token::EscapedTag(vec![">test".to_string()], "{{>test}}".to_string()),
                        Token::Text(" after".to_string())]);
 
         check_tokens(compile_str("before {{> test}}"),
                      &[Token::Text("before ".to_string()),
-                       Token::Partial("test".to_string(), "".to_string(), "{{> test}}".to_string())]);
+                       Token::EscapedTag(vec!["> test".to_string()], "{{> test}}".to_string())]);
 
         check_tokens(compile_str("{{>test}} after"),
-                     &[Token::Partial("test".to_string(), "".to_string(), "{{>test}}".to_string()),
+                     &[Token::EscapedTag(vec![">test".to_string()], "{{>test}}".to_string()),
                        Token::Text(" after".to_string())]);
     }
 
